@@ -1,5 +1,8 @@
 import http.server, http, pathlib, sys, argparse, ssl, os, builtins, tempfile
 import base64, binascii, functools, contextlib
+from datetime import datetime
+import json
+import mimetypes
 
 # Does not seem to do be used, but leaving this import out causes uploadserver
 # to not receive IPv4 requests when started with default options under Windows
@@ -10,13 +13,50 @@ import socket
 if sys.version_info.major == 3 and sys.version_info.minor < 13:
     import cgi
 else:
-    import uploadserver.cgi
+    import crdloadserver.cgi
 
 COLOR_SCHEME = {
     'light': 'light',
     'auto': 'light dark',
     'dark': 'dark',
 }
+
+
+def get_file_metadata(directory):
+    file_metadata_list = []
+    for item in pathlib.Path(directory).iterdir():
+        if item.is_file():
+            stats = item.stat()
+            mime_type, _ = mimetypes.guess_type(item)
+            file_metadata = {
+                "name": item.name,
+                "size": stats.st_size,
+                "last_modified": datetime.utcfromtimestamp(stats.st_mtime).strftime('%Y-%m-%d %H:%M:%S'),
+                "created": datetime.utcfromtimestamp(stats.st_ctime).strftime('%Y-%m-%d %H:%M:%S') if hasattr(stats, 'st_ctime') else None,
+                "last_accessed": datetime.utcfromtimestamp(stats.st_atime).strftime('%Y-%m-%d %H:%M:%S'),
+                "mime_type": mime_type or "Unknown",
+                "is_readable": os.access(item, os.R_OK),
+                "is_writeable": os.access(item, os.W_OK),
+                "is_executable": os.access(item, os.X_OK)
+                # Add more metadata if needed
+            }
+            file_metadata_list.append(file_metadata)
+    return file_metadata_list
+
+def delete_file(handler):
+    requested_path = pathlib.Path(handler.path.lstrip('/'))
+    full_path = pathlib.Path(args.directory) / requested_path
+
+    if not full_path.is_file():
+        return (http.HTTPStatus.NOT_FOUND, 'File not found')
+
+    try:
+        full_path.unlink()
+        handler.log_message(f'[Deleted] {full_path}')
+        return (http.HTTPStatus.NO_CONTENT, 'File deleted')
+    except Exception as e:
+        handler.log_error(f'Error deleting file: {e}')
+        return (http.HTTPStatus.INTERNAL_SERVER_ERROR, 'Server error')
 
 def get_upload_page(theme):
     return bytes('''<!DOCTYPE html>
@@ -248,6 +288,8 @@ class SimpleHTTPRequestHandler(ListDirectoryInterception,
         
         if self.path == '/upload':
             send_upload_page(self)
+        elif self.path == '/metadata':
+            self.send_metadata()
         else:
             super().do_GET()
     
@@ -269,6 +311,25 @@ class SimpleHTTPRequestHandler(ListDirectoryInterception,
     def do_PUT(self):
         self.do_POST()
 
+    def do_DELETE(self):
+        if not check_http_authentication(self): return
+
+        result = delete_file(self)
+        if result[0] < http.HTTPStatus.BAD_REQUEST:
+            self.send_response(result[0], result[1])
+            self.end_headers()
+        else:
+            self.send_error(result[0], result[1])
+    
+    def send_metadata(self):
+        file_metadata_list = get_file_metadata(args.directory)
+        self.send_response(http.HTTPStatus.OK)
+        self.send_header('Content-Type', 'application/json; charset=utf-8')
+        metadata_json = json.dumps(file_metadata_list, indent=4).encode('utf-8')
+        self.send_header('Content-Length', len(metadata_json))
+        self.end_headers()
+        self.wfile.write(metadata_json)
+
 class CGIHTTPRequestHandler(ListDirectoryInterception,
     http.server.CGIHTTPRequestHandler):
     def do_GET(self):
@@ -276,6 +337,8 @@ class CGIHTTPRequestHandler(ListDirectoryInterception,
         
         if self.path == '/upload':
             send_upload_page(self)
+        elif self.path == '/metadata':
+            self.send_metadata()
         else:
             super().do_GET()
     
@@ -295,6 +358,16 @@ class CGIHTTPRequestHandler(ListDirectoryInterception,
     
     def do_PUT(self):
         self.do_POST()
+
+    def do_DELETE(self):
+        if not check_http_authentication(self): return
+
+        result = delete_file(self)
+        if result[0] < http.HTTPStatus.BAD_REQUEST:
+            self.send_response(result[0], result[1])
+            self.end_headers()
+        else:
+            self.send_error(result[0], result[1])
 
 def intercept_first_print():
     if args.server_certificate:

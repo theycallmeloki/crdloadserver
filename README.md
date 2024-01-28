@@ -1,4 +1,57 @@
-# crdloadserver
+# CRDLoadServer
+
+CRDLoadServer is an enhanced Python HTTP server for handling Create, Read, and Delete operations on server files. It's built on top of specifically extending the `uploadserver` fork, which is itself an extension of `http.server`. The primary goal of CRDLoadServer is to provide a simple, yet effective way to manage files on a server, especially focusing on file uploads, metadata retrieval, and file deletion.
+
+## Features
+
+- **File Uploads**: Supports multiple file uploads through a simple and intuitive HTML interface.
+- **File Deletion**: Allows for the deletion of files on the server through HTTP DELETE requests, providing a straightforward mechanism to manage server files.
+- **Metadata Retrieval**: Includes an endpoint to retrieve metadata of the server files, making it easy to integrate and manage files across different platforms.
+
+## Endpoints
+
+- `GET /upload`: Serves the file upload page.
+- `POST /upload`: Handles file uploads.
+- `DELETE /<filepath>`: Deletes the specified file from the server.
+- `GET /metadata`: Retrieves metadata of all files in the server directory.
+
+## Getting Started
+
+### Prerequisites
+
+Ensure you have Python 3.8 or higher installed on your system.
+
+### Installation
+
+Install CRDLoadServer via pip:
+
+```bash
+pip install crdloadserver
+```
+
+### Running the Server
+After installation, you can start the server by running:
+
+`crdloadserver`
+
+Navigate to http://<server_address>:<port>/upload in your browser and use the form to upload files.
+
+File Deletion
+Send a DELETE request to http://<server_address>:<port>/<filepath> to delete a file. For example:
+
+`curl -X DELETE http://localhost:8000/example.txt`
+
+Retrieve File Metadata
+Send a GET request to http://<server_address>:<port>/metadata to retrieve metadata of all files.
+
+Contributing
+Contributions to CRDLoadServer are welcome! Feel free to fork the repository, make your changes, and submit a pull request.
+
+Acknowledgements
+http.server - The standard library HTTP server in Python.
+uploadserver - The original fork of http.server that formed the base for CRDLoadServer.
+License
+CRDLoadServer is open-source software licensed under the MIT license.
 
 ## Original readme of uploadserver below 
 

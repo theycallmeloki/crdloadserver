@@ -4,15 +4,15 @@ with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name='uploadserver',
-    version='5.1.1',
-    author='Densaugeo',
-    author_email='author@example.com',
-    description='Python\'s http.server extended to include a file upload page',
+    name='crdloadserver',
+    version='0.0.2',
+    author='theycallmeloki',
+    author_email='ogmiladyloki@gmail.com',
+    description='Python\'s http.server extended to include a file upload, delete and metadata for a directory.',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/Densaugeo/uploadserver',
-    packages=['uploadserver'],
+    url='https://github.com/theycallmeloki/crdloadserver',
+    packages=['crdloadserver'],
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
@@ -20,6 +20,6 @@ setuptools.setup(
     ],
     python_requires='>=3.8',
     entry_points = {
-        'console_scripts': ['uploadserver=uploadserver:main'],
+        'console_scripts': ['crdloadserver=crdloadserver:main'],
     }
 )
