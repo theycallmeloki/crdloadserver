@@ -115,16 +115,16 @@ document.getElementsByTagName('form')[0].addEventListener('submit', async e => {
 </html>''', 'utf-8')
 
 def get_directory_head_injection(theme):
-    return bytes('''<!-- Injected by uploadserver -->
+    return bytes('''<!-- Injected by miladyos -->
 <meta name="viewport" content="width=device-width" />
 <meta name="color-scheme" content="''' + COLOR_SCHEME.get(theme) + '''">
-<!-- End injection by uploadserver -->
+<!-- End injection by miladyos -->
 ''', 'utf-8')
 
-DIRECTORY_BODY_INJECTION = b'''<!-- Injected by uploadserver -->
-<a href="upload">File upload</a> (provided by uploadserver)
+DIRECTORY_BODY_INJECTION = b'''<!-- Injected by miladyos -->
+<a href="upload">File upload</a> (provided by miladyos)
 <hr>
-<!-- End injection by uploadserver -->
+<!-- End injection by miladyos -->
 '''
 
 def send_upload_page(handler):
