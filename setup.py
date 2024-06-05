@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
 
 setuptools.setup(
     name='crdloadserver',
-    version='0.0.2',
+    version='0.0.3',
     author='theycallmeloki',
     author_email='ogmiladyloki@gmail.com',
     description='Python\'s http.server extended to include a file upload, delete and metadata for a directory.',
